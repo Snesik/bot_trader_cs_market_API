@@ -1,5 +1,4 @@
 import urllib.parse
-import mysql.connector
 import yaml
 
 
@@ -11,21 +10,7 @@ def read_yaml(path: str):
 config = read_yaml('config.yaml')
 
 
-# def create_connection(host: str, login: str, passwd: str, bd: str):
-#     connection = None
-#     try:
-#         connection = mysql.connector.connect(
-#             host=host,
-#             user=login,
-#             passwd=passwd,
-#             database=bd
-#         )
-#     except Exception as e:
-#         print(f"The error '{e}' occurred")
-#     return connection
-
-
-def hash_in_name(href: str):
+def hash_in_name(href: str) -> str:
     return urllib.parse.unquote(href)
 
 

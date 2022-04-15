@@ -1,12 +1,16 @@
 import requests
-from util import hash_in_name, create_connection, config
+from sqlalchemy.orm import Session
+from util import hash_in_name, config
+from bd.model import engine, Items, Price, Status
 
+
+session = Session(bind=engine)
 
 class Config:
     def __init__(self, config):
         self.cs_api = config['cs']
         self.steam_api = config['steam']
-        self.connect_bd = create_connection(**config['BD'])
+        #self.connect_bd = create_connection(**config['BD'])
         self.v1 = 'https://market.csgo.com/api'
         self.v2 = 'https://market.csgo.com/api/v2'
 
@@ -49,14 +53,14 @@ class RequestCS(Config):
     def sell(self, id_item: str, price: float):
         """Выставить лот на продажу"""
         data = requests.get(f'{self.v2}/add-to-sale?key={self.cs_api}&id={id_item}&price={price}&cur=RUB').json()
-        if data['success']:
-            cursor = self.connect_bd.cursor()
-            cursor.execute('UPDATE market_cs SET id_item = %s, status = "sale" where id_market = %s',
-                           [data['item_id'], id_item])
-            self.connect_bd.commit()
-            cursor.close()
-        else:
-            print(f'{id_item} Failed')
+        # if data['success']:
+        #     cursor = self.connect_bd.cursor()
+        #     cursor.execute('UPDATE market_cs SET id_item = %s, status = "sale" where id_market = %s',
+        #                    [data['item_id'], id_item])
+        #     self.connect_bd.commit()
+        #     cursor.close()
+        # else:
+        #     print(f'{id_item} Failed')
 
     def all_order_item(self, classid: str, instanceid: str):
         """Все ордера на продажу"""
@@ -98,7 +102,7 @@ def bd():
         a = trader.my_inventory()
 
     return price_lot_we_have
-bd()
+
 # https://market.csgo.com/api/v2/search-item-by-hash-name?key=[your_secret_key]&hash_name=[market_hash_name]
 
 
@@ -119,7 +123,7 @@ bd()
 "ttps://market.csgo.com/api/MassInfo/[SELL]/[BUY]/[HISTORY]/[INFO]?key=[your_secret_key]"
 "list — classid_instanceid,classid_instanceid,classid_instanceid"
 
-# a = trader.my_inventory()
+a = trader.my_inventory()
 # bd = create_connection(**config['BD'])
 # print(trader.ping_pong())
 # with trader.connect_bd.cursor() as bd:
@@ -127,7 +131,7 @@ bd()
 #     bbb = bd.fetchall()
 #     print()
 # dd = ['4141781426_188530170']
-a = trader.all_price()
+#a = trader.all_price()
 # поиск из инвентаря
 # [i for i in a['items'] if i['market_hash_name'] == 'StatTrak™ Glock-18 | Moonrise (Well-Worn)']
 # ww = trader.ping_pong()
@@ -150,17 +154,28 @@ print()
 #     print()
 # bdd = bd.cursor()
 # bdd.execute('SELECT id_market from market_cs')
-# we_have = [i[0] for i in bdd.fetchall()]
+we_have = [str(i[0]) for i in session.query(Items.id).all()]
 
 
-# add_news = [i for i in a['items'] if i['id'] in we_have]
-# for i in a['items']:
-#     id_market = i['id']
-#     hash_name = bild_hash_name(i['market_hash_name'])
-#     class_id = i['classid']
-#     instance_id = i['instanceid']
-#
-#
+add_news = [i for i in a['items'] if not i['id'] in we_have]
+for i in add_news:
+    item = Items(
+            id=i['id'],
+            name=i['market_hash_name'],
+            class_id=i['classid'],
+            instance_id=i['instanceid'])
+    b = Price(
+        item_id=i['id']
+    )
+    c = Status(
+        item_id=i['id'])
+    # id_market = i['id']
+    # hash_name = bild_hash_name(i['market_hash_name'])
+    # class_id = i['classid']
+    # instance_id = i['instanceid']
+    session.add_all([item, b, c])
+    session.commit()
+
 #     bdd.execute('INSERT INTO market_cs(id_market, hash_name, class_id, instance_id, ) VALUES(%s, %s, %s, %s)',
 #                       [id_market, hash_name, class_id, instance_id])
 #

@@ -3,7 +3,7 @@ import mysql.connector
 import yaml
 
 
-def read_yaml(path):
+def read_yaml(path: str):
     with open(path, 'r') as c:
         return yaml.safe_load(c)
 
@@ -11,21 +11,21 @@ def read_yaml(path):
 config = read_yaml('config.yaml')
 
 
-def create_connection(host, login, passwd, bd):
-    connection = None
-    try:
-        connection = mysql.connector.connect(
-            host=host,
-            user=login,
-            passwd=passwd,
-            database=bd
-        )
-    except Exception as e:
-        print(f"The error '{e}' occurred")
-    return connection
+# def create_connection(host: str, login: str, passwd: str, bd: str):
+#     connection = None
+#     try:
+#         connection = mysql.connector.connect(
+#             host=host,
+#             user=login,
+#             passwd=passwd,
+#             database=bd
+#         )
+#     except Exception as e:
+#         print(f"The error '{e}' occurred")
+#     return connection
 
 
-def hash_in_name(href):
+def hash_in_name(href: str):
     return urllib.parse.unquote(href)
 
 

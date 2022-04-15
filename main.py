@@ -103,21 +103,16 @@ def bd():
     return price_lot_we_have
 
 
-
 # ww = trader.ping_pong()
 # w = trader.test()
 # a = trader.history({"list": [dd]})
 # b = trader.trade_request_all()
 # a = trader.sell('25222328757', 100)
 # www = trader.trade_request_all()
-# bbbbb = ''
 # sa = trader.sell('25222287403', 10000)
 # ss = trader.all_order_item('1704597526', '188530170')
-#
 # bb = trader.set_price(bbbbb, 11111)
-print()
-# trader.remove_all_from_sale()
-'Sawed-Off | Forest DDPAT (Factory New)'
+
 
 
 def add_in_bb() -> bool:
@@ -129,11 +124,9 @@ def add_in_bb() -> bool:
             id=i['id'],
             name=i['market_hash_name'],
             class_id=i['classid'],
-            instance_id=i['instanceid']
-        )
+            instance_id=i['instanceid'])
         price = Price(
-            item_id=i['id']
-        )
+            item_id=i['id'])
         status = Status(
             item_id=i['id'])
         session.add_all([item, price, status])

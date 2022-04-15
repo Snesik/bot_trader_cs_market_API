@@ -3,14 +3,13 @@ from sqlalchemy.orm import Session
 from util import hash_in_name, config
 from bd.model import engine, Items, Price, Status
 
-
 session = Session(bind=engine)
+
 
 class Config:
     def __init__(self, config):
         self.cs_api = config['cs']
         self.steam_api = config['steam']
-        #self.connect_bd = create_connection(**config['BD'])
         self.v1 = 'https://market.csgo.com/api'
         self.v2 = 'https://market.csgo.com/api/v2'
 
@@ -95,7 +94,7 @@ trader = RequestCS(config)
 
 def bd():
     with trader.connect_bd.cursor() as cn:
-        cn.execute('SELECT hash_name from market_cs') #where status = "trade"')
+        cn.execute('SELECT hash_name from market_cs')  # where status = "trade"')
         bd = [hash_in_name(i[0]) for i in cn.fetchall()]
         market = trader.all_price()
         price_lot_we_have = [i for i in market['items'] if i['market_hash_name'] in bd]
@@ -103,37 +102,8 @@ def bd():
 
     return price_lot_we_have
 
-# https://market.csgo.com/api/v2/search-item-by-hash-name?key=[your_secret_key]&hash_name=[market_hash_name]
 
 
-# my_inventory = requests.get(f'https://market.csgo.com/api/v2/my-inventory/?key={Config.cs_api}').json()
-"Все что не продаже"
-# all_sell = requests.get(f'https://market.csgo.com/api/v2/items?key={Config.cs_api}').json()
-"Обновить информацию об инвенторе, рекомендация проводить после каждой передачи предмета"
-# update_inventory = requests.get(f'https://market.csgo.com/api/v2/update-inventory/?key={Config.cs_api}').json()
-"Проверить возможность работы все должны быть TRUE"
-# test = requests.get(f'https://market.csgo.com/api/v2/test?key={Config.cs_api}').json()
-"Раз в 3 минуты отправить, что я на сайте"
-# ping_pong = requests.get(f'https://market.csgo.com/api/PingPong/?key={Config.cs_api}').json()
-"Выставить на продажу"
-# https://market.csgo.com/api/v2/add-to-sale?key=[your_secret_key]&id=[id]&price=[price]&cur=[currency]
-"Изменить цену лота"
-# https://market.csgo.com/api/v2/set-price?key=[your_secret_key]&item_id=[item_id]&price=[price]&cur=[currency]
-# a = Request_cs.my_inventory
-"ttps://market.csgo.com/api/MassInfo/[SELL]/[BUY]/[HISTORY]/[INFO]?key=[your_secret_key]"
-"list — classid_instanceid,classid_instanceid,classid_instanceid"
-
-a = trader.my_inventory()
-# bd = create_connection(**config['BD'])
-# print(trader.ping_pong())
-# with trader.connect_bd.cursor() as bd:
-#     bd.execute('SELECT * from market_cs')
-#     bbb = bd.fetchall()
-#     print()
-# dd = ['4141781426_188530170']
-#a = trader.all_price()
-# поиск из инвентаря
-# [i for i in a['items'] if i['market_hash_name'] == 'StatTrak™ Glock-18 | Moonrise (Well-Worn)']
 # ww = trader.ping_pong()
 # w = trader.test()
 # a = trader.history({"list": [dd]})
@@ -148,42 +118,27 @@ a = trader.my_inventory()
 print()
 # trader.remove_all_from_sale()
 'Sawed-Off | Forest DDPAT (Factory New)'
-# b = trader.all_sell()
-# print()
-# with bd as bdd:
-#     print()
-# bdd = bd.cursor()
-# bdd.execute('SELECT id_market from market_cs')
-we_have = [str(i[0]) for i in session.query(Items.id).all()]
 
 
-add_news = [i for i in a['items'] if not i['id'] in we_have]
-for i in add_news:
-    item = Items(
+def add_in_bb() -> bool:
+    inventory = trader.my_inventory()
+    lots_in_bd = [str(i[0]) for i in session.query(Items.id).all()]
+    that_we_add = [i for i in inventory['items'] if not i['id'] in lots_in_bd]
+    for i in that_we_add:
+        item = Items(
             id=i['id'],
             name=i['market_hash_name'],
             class_id=i['classid'],
-            instance_id=i['instanceid'])
-    b = Price(
-        item_id=i['id']
-    )
-    c = Status(
-        item_id=i['id'])
-    # id_market = i['id']
-    # hash_name = bild_hash_name(i['market_hash_name'])
-    # class_id = i['classid']
-    # instance_id = i['instanceid']
-    session.add_all([item, b, c])
-    session.commit()
+            instance_id=i['instanceid']
+        )
+        price = Price(
+            item_id=i['id']
+        )
+        status = Status(
+            item_id=i['id'])
+        session.add_all([item, price, status])
+        session.commit()
+    return True
 
-#     bdd.execute('INSERT INTO market_cs(id_market, hash_name, class_id, instance_id, ) VALUES(%s, %s, %s, %s)',
-#                       [id_market, hash_name, class_id, instance_id])
-#
-#
-#
-#     print(i['market_hash_name'])
-# bd.commit()
-#
-# bdd.close()
-# bd.close()
-# # print()
+
+add_in_bb()

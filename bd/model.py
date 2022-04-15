@@ -9,12 +9,11 @@ Base = declarative_base()
 bd = config['BD']
 engine = create_engine(
     f"mysql+mysqlconnector://{bd['login']}:{bd['passwd']}@"
-                            f"{bd['host']}/{bd['bd']}")
+    f"{bd['host']}/{bd['bd']}")
 
 
 class Items(Base):
     __tablename__ = 'items'
-    #id = Column(Integer(), primary_key=True)
     id = Column(BigInteger(), primary_key=True, index=True)
     name = Column(String(200), nullable=False)
     class_id = Column(BigInteger(), nullable=False)
@@ -41,22 +40,4 @@ class Status(Base):
     item_id = Column(BigInteger(), ForeignKey('items.id'))
 
 
-# Session = sessionmaker(bind=engine)
-#
 Base.metadata.create_all(engine)
-
-# a = Items(
-#     id_item=1,
-#     name=333,
-#     class_id=33,
-#     instance_id=33)
-# b = Price(
-#     item_id=1
-# )
-# c = Status(
-#     item_id=1
-# )
-# session = Session(bind=engine)
-# session.add_all([a, b, c])
-# session.commit()
-# print()

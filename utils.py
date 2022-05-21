@@ -7,14 +7,11 @@ def read_yaml(path: str):
         return yaml.safe_load(c)
 
 
-config = read_yaml('config.yaml')
-
-
 def hash_in_name(href: str) -> str:
     return urllib.parse.unquote(href)
 
 
-def bild_href(name):
+def bild_href(name: str) -> str:
     """создаем href"""
     name = urllib.parse.quote(name)
     ss = f'https://steamcommunity.com/market/listings/730/{name}'

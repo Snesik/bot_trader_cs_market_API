@@ -1,15 +1,20 @@
 from sqlalchemy import String, Column, DateTime, Float, BigInteger, ForeignKey, Integer, create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from datetime import datetime
 from sqlalchemy.orm import relationship
-from util import config
+from datetime import datetime
+from utils import read_yaml
 
 Base = declarative_base()
 
-bd = config['BD']
+BD = read_yaml('config.yaml')['BD']
 engine = create_engine(
-    f"mysql+mysqlconnector://{bd['login']}:{bd['passwd']}@"
-    f"{bd['host']}/{bd['bd']}")
+    f"mysql+mysqlconnector://{BD['login']}:{BD['passwd']}@"
+    f"{BD['host']}/{BD['bd']}")
+
+BD_CS = read_yaml('config.yaml')['BD_CS']
+engine_cs_bd = create_engine(
+    f"mysql+mysqlconnector://{BD_CS['login']}:{BD_CS['passwd']}@"
+    f"{BD_CS['host']}/{BD_CS['bd']}")
 
 
 class Items(Base):
@@ -41,3 +46,5 @@ class Status(Base):
 
 
 Base.metadata.create_all(engine)
+
+

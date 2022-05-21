@@ -1,137 +1,187 @@
+import re
+import time
+import datetime
 import requests
+from collections import Counter
+from sqlalchemy import text
 from sqlalchemy.orm import Session
-from util import hash_in_name, config
-from bd.model import engine, Items, Price, Status
+from bd.models import engine, engine_cs_bd, Items, Price, Status
+from market_cs.requsts_api import ApiCs
+from inventory.models import Inv_item
 
 session = Session(bind=engine)
+session_cs_bd = Session(bind=engine_cs_bd)
+trader = ApiCs()
 
 
-class Config:
-    def __init__(self, config):
-        self.cs_api = config['cs']
-        self.steam_api = config['steam']
-        self.v1 = 'https://market.csgo.com/api'
-        self.v2 = 'https://market.csgo.com/api/v2'
+def find_instance_id(asset_id):
+    head = {'Referer': f"https://steamcommunity.com/profiles/76561198073787208/inventory"}
+    all_intem = requests.get('https://steamcommunity.com/inventory/76561198073787208/730/2?l=russian&count=5000',
+                             headers=head).json()
+    return [i['instanceid'] for i in all_intem['assets'] if i['assetid'] == asset_id and i['instanceid'] != 0][0]
 
 
-class RequestCS(Config):
-    """Запросы через api"""
-
-    def my_inventory(self):
-        """Предметы для продаже в моем инвенторе"""
-        return requests.get(f'{self.v2}/my-inventory/?key={self.cs_api}').json()
-
-    def all_price(self):
-        """Цены на все товары"""
-        return requests.get(f'{self.v2}/prices/RUB.json').json()
-
-    def all_sell(self):
-        """Выставленные на продажу лоты"""
-        return requests.get(f'{self.v2}/items?key={self.cs_api}').json()
-
-    def update_inv(self):
-        """Обновить информацию об инвенторе, рекомендация проводить после каждой передачи предмета"""
-        return requests.get(f'{self.v2}/update-inventory/?key={self.cs_api}').json()
-
-    def test(self):
-        """Проверить возможность работы, все должны быть TRUE"""
-        return requests.get(f'{self.v2}/test?key={self.cs_api}').json()
-
-    def ping_pong(self):
-        """Раз в 3 минуты отправить, что я на сайте"""
-        return requests.get(f'{self.v2}/ping/?key={self.cs_api}').json()
-
-    def balance(self):
-        """Баланс"""
-        return requests.get(f'{self.v2}/get-money/?key={self.cs_api}').json()
-
-    def remove_all_from_sale(self):
-        """Снятие сразу всех предметов с продажи."""
-        return requests.get(f'{self.v2}/remove-all-from-sale?key={self.cs_api}').json()
-
-    def sell(self, id_item: str, price: float):
-        """Выставить лот на продажу"""
-        data = requests.get(f'{self.v2}/add-to-sale?key={self.cs_api}&id={id_item}&price={price}&cur=RUB').json()
-        # if data['success']:
-        #     cursor = self.connect_bd.cursor()
-        #     cursor.execute('UPDATE market_cs SET id_item = %s, status = "sale" where id_market = %s',
-        #                    [data['item_id'], id_item])
-        #     self.connect_bd.commit()
-        #     cursor.close()
-        # else:
-        #     print(f'{id_item} Failed')
-
-    def all_order_item(self, classid: str, instanceid: str):
-        """Все ордера на продажу"""
-        return requests.get(f'{self.v1}/SellOffers/{classid}_{instanceid}/?key={self.cs_api}').json()
-
-    def search_item_by_name(self, hash_name):
-        """Поиск предмета по hash имени"""
-        return requests.get(f'{self.v2}/search-item-by-hash-name?key={self.cs_api}&hash_name={hash_name}').json()
-
-    def search_item_by_name_50(self, hash_name):
-        """Поиск предмета по hash имени"""
-        # return requests.get(f'{self.v2}/search-item-by-hash-name?key={self.cs_api}&hash_name={hash_name}').json()
-
-    def trade_request_all(self):
-        """Все трейды что нужно потвердить приходит LIST( {'appid', 'contextid', 'assetid'(при попадения
-         можно найти в инвентаре при нажатии правой кнопкной мыше), 'amount'}"""
-        return requests.get(f'{self.v2}/trade-request-give-p2p-all?key={self.cs_api}').json()
-
-    def set_price(self, item_id: str, price: float):
-        """Изменить цену лота, ответ dict {'success': True}"""
-        return requests.get(f'{self.v2}/set-price?key={self.cs_api}&item_id={item_id}&price={price}&cur=RUB').json()
-
-    def history(self, items):
-        """История продаж предметов, макс. 100 post
-        Пример:
-        a = trader.history({"list": [dd]})"""
-        return requests.post(f'{self.v1}/MassInfo/0/0/1/1?key={self.cs_api}', data=items).json()
-
-
-trader = RequestCS(config)
-
-
-def bd():
-    with trader.connect_bd.cursor() as cn:
-        cn.execute('SELECT hash_name from market_cs')  # where status = "trade"')
-        bd = [hash_in_name(i[0]) for i in cn.fetchall()]
-        market = trader.all_price()
-        price_lot_we_have = [i for i in market['items'] if i['market_hash_name'] in bd]
-        a = trader.my_inventory()
-
-    return price_lot_we_have
-
-
-# ww = trader.ping_pong()
-# w = trader.test()
-# a = trader.history({"list": [dd]})
-# b = trader.trade_request_all()
-# a = trader.sell('25222328757', 100)
-# www = trader.trade_request_all()
-# sa = trader.sell('25222287403', 10000)
-# ss = trader.all_order_item('1704597526', '188530170')
-# bb = trader.set_price(bbbbb, 11111)
-
-
-
-def add_in_bb() -> bool:
-    inventory = trader.my_inventory()
+def add_in_bd(inventory):
     lots_in_bd = [str(i[0]) for i in session.query(Items.id).all()]
-    that_we_add = [i for i in inventory['items'] if not i['id'] in lots_in_bd]
-    for i in that_we_add:
-        item = Items(
-            id=i['id'],
-            name=i['market_hash_name'],
-            class_id=i['classid'],
-            instance_id=i['instanceid'])
-        price = Price(
-            item_id=i['id'])
-        status = Status(
-            item_id=i['id'])
+    that_we_add_in_bd = [i for i in inventory if not i['id'] in lots_in_bd]
+    for i in that_we_add_in_bd:
+        if i['instanceid'] == '0':
+            result = find_instance_id(i['id'])
+            if result is None:
+                i['instanceid'] = 0
+            else:
+                i['instanceid'] = result
+
+        item = Items(id=i['id'],
+                     name=i['market_hash_name'],
+                     class_id=i['classid'],
+                     instance_id=i['instanceid']
+                     )
+        price = Price(item_id=i['id'])
+        if i['tradable'] != 0:
+            status = Status(item_id=i['id'], status='hold')
+        else:
+            status = Status(item_id=i['id'])
         session.add_all([item, price, status])
         session.commit()
-    return True
+        print(i['market_hash_name'])
 
 
-add_in_bb()
+def we_sell():
+    all_lot = []
+    result = session.query(Items.class_id).where(Items.id == Status.item_id and Status.status == 'sell').all()
+    result = [str(i) for i, in result]
+    for class_id in result:
+        if class_id not in all_lot:
+            all_lot.append(class_id)
+    all_lot = Counter(all_lot)
+    # {str(only_assetid)[1:-1]}
+    a = session.query(Items.id).filter(
+        Items.class_id.in_(all_lot) and Items.id == Status.item_id and Status.status == 'b').all()
+    all_trader_item = trader.all_sell()
+
+
+
+
+# ПРЕДМЕТЫ ТОРГОВЛИ
+def chech_my_price():
+    all_price_item = trader.all_price()['items']
+    result_bd = session.query(Items.name, Items.id, Items.class_id, Price.sell, Items.instance_id) \
+        .where(Items.id == Price.item_id) \
+        .all()
+    all_inv_item = []
+    for one_result in result_bd:
+        if len(all_inv_item) == 0:
+            all_inv_item.append(Inv_item(*one_result))
+            continue
+        for item in all_inv_item:
+            if item.name == one_result[0]:
+                if item.id == one_result[1]:
+                    break
+                else:
+                    item.id = item.id + [one_result[1]]
+                    break
+        else:
+            all_inv_item.append(Inv_item(*one_result))
+
+    for price in all_price_item:
+        for item in all_inv_item:
+            if price['market_hash_name'] == item.name:
+                item.price = float(price['price'])
+
+    request_in_bd = tuple([item.href for item in all_inv_item])
+    mysql = f'SELECT ss, avg_result, low_avg FROM cs WHERE ss in {request_in_bd}'
+    r = session_cs_bd.execute(mysql)
+    result = [row for row in r]
+    for i in result:
+        for item in all_inv_item:
+            if item.href == i[0]:
+                item.avg_result = i[1]
+                item.low_avg = i[2]
+                break
+        else:
+            print('Лота нету в наших лотах ', i[0])
+
+    return all_inv_item
+
+
+# def proverka_na_otkat():
+
+
+# def check_price(time_block, items):
+#     for item in items:
+#         if item.price != item.sell_bd:
+#             pass
+#         else:
+
+
+# TIMEBLOCK
+time_now = datetime.datetime.now()
+beginning, end = time_now.replace(hour=7, minute=0, second=0, microsecond=0), \
+                 time_now.replace(hour=19, minute=0, second=0, microsecond=0)
+
+if beginning < time_now < end:
+    time_block = 0.04
+else:
+    time_block = 0.02
+
+items = chech_my_price()
+
+# a = {'list':[i,] for i in items}
+
+a = {}
+a['list'] = []
+for i in items:
+    if len(a['list']) == 1:
+        break
+    a['list'].append(f'{i.class_id}_{i.instanse_id}')
+
+ddd = trader.test()
+ss = trader.ping_pong()
+b = []
+fff = trader.search_item_by_name_5(items)
+# for item in items:
+#     b.append(trader.search_item_by_name(item.name)['data'])
+#     time.sleep(0.25)
+#     b.append(trader.item_info(item.class_id, item.instanse_id))
+#     time.sleep(0.25)
+# dddd = trader.all_order_item(items[0].class_id, items[0].instanse_id)
+# p = trader.all_sell()
+print()
+
+# def look_in_cs_market():
+
+
+# sss =  trader.remove_all_from_sale()
+# b = trader.all_price()
+# we_sell()
+# chech_my_price()
+# ww = trader.ping_pong()
+# w = trader.test()
+# aa = trader.my_inventory()
+# for i in aa:
+#     sss = trader.sell(i['id'], 10000000)
+#     print(sss)
+#     time.sleep(0.33)
+
+# www = trader.update_inv()
+# time.sleep(0.5)
+# #a = trader.history({"list": [dd]})
+b = trader.all_sell()
+# add_in_bd(aa)
+print()
+# print()
+# sell0 = trader.sell('25222288942', 100)
+# sell1 = trader.sell('25222330183', 100)
+# response = trader.trade_request_all()
+# print()
+# #sa = trader.sell('25222287403', 10000)
+# #ss = trader.all_order_item('1704597526', '188530170')
+# #bb = trader.set_price(bbbbb, 11111)
+#
+#
+
+
+# print()
+#
+# add_in_bb()

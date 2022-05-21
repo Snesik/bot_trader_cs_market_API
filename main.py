@@ -1,13 +1,10 @@
-import re
-import time
-import datetime
 import requests
 from collections import Counter
-from sqlalchemy import text
 from sqlalchemy.orm import Session
 from bd.models import engine, engine_cs_bd, Items, Price, Status
 from market_cs.requsts_api import ApiCs
-from inventory.models import Inv_item
+from inventory.models import InvItem
+from utils import time_block
 
 session = Session(bind=engine)
 session_cs_bd = Session(bind=engine_cs_bd)
@@ -18,7 +15,8 @@ def find_instance_id(asset_id):
     head = {'Referer': f"https://steamcommunity.com/profiles/76561198073787208/inventory"}
     all_intem = requests.get('https://steamcommunity.com/inventory/76561198073787208/730/2?l=russian&count=5000',
                              headers=head).json()
-    return [i['instanceid'] for i in all_intem['assets'] if i['assetid'] == asset_id and i['instanceid'] != 0][0]
+    return [item['instanceid'] for item in all_intem['assets']
+            if item['assetid'] == asset_id and item['instanceid'] != 0][0]
 
 
 def add_in_bd(inventory):
@@ -49,7 +47,7 @@ def add_in_bd(inventory):
 
 def we_sell():
     all_lot = []
-    result = session.query(Items.class_id).where(Items.id == Status.item_id and Status.status == 'sell').all()
+    result = session.query(Items.class_id).where(Items.id == Status.item_id and Status.status == 'hold').all()
     result = [str(i) for i, in result]
     for class_id in result:
         if class_id not in all_lot:
@@ -61,8 +59,6 @@ def we_sell():
     all_trader_item = trader.all_sell()
 
 
-
-
 # ПРЕДМЕТЫ ТОРГОВЛИ
 def chech_my_price():
     all_price_item = trader.all_price()['items']
@@ -72,7 +68,7 @@ def chech_my_price():
     all_inv_item = []
     for one_result in result_bd:
         if len(all_inv_item) == 0:
-            all_inv_item.append(Inv_item(*one_result))
+            all_inv_item.append(InvItem(*one_result))
             continue
         for item in all_inv_item:
             if item.name == one_result[0]:
@@ -82,7 +78,7 @@ def chech_my_price():
                     item.id = item.id + [one_result[1]]
                     break
         else:
-            all_inv_item.append(Inv_item(*one_result))
+            all_inv_item.append(InvItem(*one_result))
 
     for price in all_price_item:
         for item in all_inv_item:
@@ -105,6 +101,9 @@ def chech_my_price():
     return all_inv_item
 
 
+
+
+
 # def proverka_na_otkat():
 
 
@@ -116,14 +115,6 @@ def chech_my_price():
 
 
 # TIMEBLOCK
-time_now = datetime.datetime.now()
-beginning, end = time_now.replace(hour=7, minute=0, second=0, microsecond=0), \
-                 time_now.replace(hour=19, minute=0, second=0, microsecond=0)
-
-if beginning < time_now < end:
-    time_block = 0.04
-else:
-    time_block = 0.02
 
 items = chech_my_price()
 

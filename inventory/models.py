@@ -6,7 +6,7 @@ class Inventory:
         self.steam_id = read_yaml('config.yaml')['steam_id']
 
 
-class Inv_item:
+class InvItem:
     def __init__(self, name: str, id, class_id, sell_bd, instanse_id):
         self.name = name
         self.id = [id]

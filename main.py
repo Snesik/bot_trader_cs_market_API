@@ -121,29 +121,24 @@ def chech_my_price():
 
 ss = trader.ping_pong()
 ddd = trader.test()
-trader.remove_all_from_sale()
+#trader.remove_all_from_sale()
 trader.update_inv()
 add_in_bd(trader.my_inventory())
-# a = {'list':[i,] for i in items}
 
-a = {}
-a['list'] = []
-# for i in items:
-#     if len(a['list']) == 1:
-#         break
-#     a['list'].append(f'{i.class_id}_{i.instanse_id}')
+#НАДО ДОБАВИТЬ ПРОВЕРКУ ЛОТОВ КОТОРЫЕ ЕСТЬ В НАЛИЧИИ НА класс и инстант из за инв. стим через запрос стима а не ксмаркета
 
-requests_session = creation_session_bots()['_kornelius_']
+# requests_session = creation_session_bots()['_kornelius_']
+# items = chech_my_price()
+#
+# offerts = trader.trade_request_all()['offers']
+# fff = trader.search_item_by_name_5(items)
+# ConfirmationExecutor(
+#     crede['identity_secret'], crede['steam_login_sec'],
+#     crede['identity_secret'], requests_session
+#     ).send_trade_allow_request()
 
 
-items = chech_my_price()
 
-offerts = trader.trade_request_all()['offers']
-fff = trader.search_item_by_name_5(items)
-ConfirmationExecutor(
-    crede['identity_secret'], crede['steam_login_sec'],
-    crede['identity_secret'], requests_session
-    ).send_trade_allow_request()
 # for item in items:
 #     b.append(trader.search_item_by_name(item.name)['data'])
 #     time.sleep(0.25)
@@ -151,7 +146,7 @@ ConfirmationExecutor(
 #     time.sleep(0.25)
 # dddd = trader.all_order_item(items[0].class_id, items[0].instanse_id)
 # p = trader.all_sell()
-print()
+
 
 # def look_in_cs_market():
 
@@ -162,16 +157,16 @@ print()
 # chech_my_price()
 # ww = trader.ping_pong()
 # w = trader.test()
-# aa = trader.my_inventory()
-# for i in aa:
-#     sss = trader.sell(i['id'], 10000000)
-#     print(sss)
-#     time.sleep(0.33)
+aa = trader.my_inventory()
+for i in aa:
+    sss = trader.sell(i['id'], 10000000)
+    print(sss)
+    time.sleep(0.25)
 
 # www = trader.update_inv()
 # time.sleep(0.5)
 # #a = trader.history({"list": [dd]})
-b = trader.all_sell()
+#b = trader.all_sell()
 # add_in_bd(aa)
 print()
 # print()

@@ -48,6 +48,7 @@ class ApiCs:
                 pass
             else:
                 raise f'{key} нет доступа: ответ {value}'
+        return True
 
     def balance(self):
         """Баланс"""
@@ -90,7 +91,10 @@ class ApiCs:
                 data1 = ''
                 time.sleep(0.25)
         for i in data:
-            i.sell_orders = [float(item['price']) / 100 for item in a[i.name]]
+            if i.name in a:
+                i.sell_orders = [float(item['price']) / 100 for item in a[i.name]]
+            else:
+                i.sell_orders = [float(i.avg_result * 0.4 + i.avg_result)]
         return data
 
     def trade_request_all(self):

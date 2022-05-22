@@ -1,15 +1,18 @@
-import requests
 from collections import Counter
 from sqlalchemy.orm import Session
 from bd.models import engine, engine_cs_bd, Items, Price, Status
+from bd.confirm_trade import *
 from market_cs.requsts_api import ApiCs
 from inventory.models import InvItem
-from utils import time_block
+from utils import time_block, read_yaml
+from steam.add_session import creation_session_bots
+
+
 
 session = Session(bind=engine)
 session_cs_bd = Session(bind=engine_cs_bd)
 trader = ApiCs()
-
+crede = read_yaml('config.yaml')['config']
 
 def find_instance_id(asset_id):
     head = {'Referer': f"https://steamcommunity.com/profiles/76561198073787208/inventory"}
@@ -116,21 +119,31 @@ def chech_my_price():
 
 # TIMEBLOCK
 
-items = chech_my_price()
-
+ss = trader.ping_pong()
+ddd = trader.test()
+trader.remove_all_from_sale()
+trader.update_inv()
+add_in_bd(trader.my_inventory())
 # a = {'list':[i,] for i in items}
 
 a = {}
 a['list'] = []
-for i in items:
-    if len(a['list']) == 1:
-        break
-    a['list'].append(f'{i.class_id}_{i.instanse_id}')
+# for i in items:
+#     if len(a['list']) == 1:
+#         break
+#     a['list'].append(f'{i.class_id}_{i.instanse_id}')
 
-ddd = trader.test()
-ss = trader.ping_pong()
-b = []
+requests_session = creation_session_bots()['_kornelius_']
+
+
+items = chech_my_price()
+
+offerts = trader.trade_request_all()['offers']
 fff = trader.search_item_by_name_5(items)
+ConfirmationExecutor(
+    crede['identity_secret'], crede['steam_login_sec'],
+    crede['identity_secret'], requests_session
+    ).send_trade_allow_request()
 # for item in items:
 #     b.append(trader.search_item_by_name(item.name)['data'])
 #     time.sleep(0.25)

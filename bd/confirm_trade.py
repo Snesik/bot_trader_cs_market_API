@@ -30,11 +30,14 @@ class Tag(enum.Enum):
 class ConfirmationExecutor:
     CONF_URL = "https://steamcommunity.com/mobileconf"
 
-    def __init__(self, identity_secret: str, my_steam_id: str, adnroid, requests_session) -> None:
+    def __init__(
+            self, identity_secret: str, my_steam_id: str,
+            adnroid: str, requests_session: requests.Session, offerts: list) -> None:
         self._my_steam_id = my_steam_id
         self._identity_secret = identity_secret
         self._session = requests_session
         self._adnroid = adnroid
+        self._all_offerts = offerts
         # self._all_items = all_items
         # self._offerts = offerts
 

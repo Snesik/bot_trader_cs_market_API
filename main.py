@@ -3,16 +3,15 @@ from sqlalchemy.orm import Session
 from bd.models import engine, engine_cs_bd, Items, Price, Status
 from bd.confirm_trade import *
 from market_cs.requsts_api import ApiCs
-from inventory.models import InvItem
+from inventory.models import InvItem, Offert
 from utils import time_block, read_yaml
 from steam.add_session import creation_session_bots
-
-
 
 session = Session(bind=engine)
 session_cs_bd = Session(bind=engine_cs_bd)
 trader = ApiCs()
 crede = read_yaml('config.yaml')['config']
+
 
 def find_instance_id(asset_id):
     head = {'Referer': f"https://steamcommunity.com/profiles/76561198073787208/inventory"}
@@ -78,7 +77,7 @@ def chech_my_price():
                 if item.id == one_result[1]:
                     break
                 else:
-                    item.id = item.id + [one_result[1]]
+                    item.id = item.id + [str(one_result[1])]
                     break
         else:
             all_inv_item.append(InvItem(*one_result))
@@ -104,6 +103,12 @@ def chech_my_price():
     return all_inv_item
 
 
+def add_in_offerts_item(offerts, items):
+    for item in items:
+        for offert in offerts:
+            for asset in offert.id:
+                if asset in item.id:
+                    offert.config = {asset: str(item.class_id) + '_' + str(item.instanse_id)}
 
 
 
@@ -121,23 +126,30 @@ def chech_my_price():
 
 ss = trader.ping_pong()
 ddd = trader.test()
-#trader.remove_all_from_sale()
-trader.update_inv()
+# trader.remove_all_from_sale()
+# trader.update_inv()
 add_in_bd(trader.my_inventory())
+# aa = trader.my_inventory()
+# for i in aa:
+#     sss = trader.sell(i['id'], 10000000)
+#     print(sss)
+#     time.sleep(0.25)
 
-#НАДО ДОБАВИТЬ ПРОВЕРКУ ЛОТОВ КОТОРЫЕ ЕСТЬ В НАЛИЧИИ НА класс и инстант из за инв. стим через запрос стима а не ксмаркета
+print()
 
-# requests_session = creation_session_bots()['_kornelius_']
-# items = chech_my_price()
+# НАДО ДОБАВИТЬ ПРОВЕРКУ ЛОТОВ КОТОРЫЕ ЕСТЬ В НАЛИЧИИ НА класс и инстант из за инв. стим через запрос стима а не ксмаркета
+
+requests_session = creation_session_bots()['_kornelius_']
+items = chech_my_price()
 #
-# offerts = trader.trade_request_all()['offers']
-# fff = trader.search_item_by_name_5(items)
-# ConfirmationExecutor(
-#     crede['identity_secret'], crede['steam_login_sec'],
-#     crede['identity_secret'], requests_session
-#     ).send_trade_allow_request()
+offerts = [Offert(partner) for partner in trader.trade_request_all()['offers']]
+add_in_offerts_item(offerts, items)
+fff = trader.search_item_by_name_5(items)
 
-
+ConfirmationExecutor(
+    crede['identity_secret'], crede['steam_login_sec'],
+    crede['android'], requests_session, offerts
+).send_trade_allow_request()
 
 # for item in items:
 #     b.append(trader.search_item_by_name(item.name)['data'])
@@ -157,18 +169,14 @@ add_in_bd(trader.my_inventory())
 # chech_my_price()
 # ww = trader.ping_pong()
 # w = trader.test()
-aa = trader.my_inventory()
-for i in aa:
-    sss = trader.sell(i['id'], 10000000)
-    print(sss)
-    time.sleep(0.25)
+
 
 # www = trader.update_inv()
 # time.sleep(0.5)
 # #a = trader.history({"list": [dd]})
-#b = trader.all_sell()
+# b = trader.all_sell()
 # add_in_bd(aa)
-print()
+
 # print()
 # sell0 = trader.sell('25222288942', 100)
 # sell1 = trader.sell('25222330183', 100)

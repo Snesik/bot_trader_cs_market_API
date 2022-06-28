@@ -5,6 +5,7 @@ from bd.confirm_trade import *
 from market_cs.requsts_api import ApiCs
 from inventory.models import InvItem, Offert
 from utils import time_block, read_yaml
+
 from steam.add_session import creation_session_bots
 
 session = Session(bind=engine)

@@ -3,7 +3,7 @@ import requests
 import pickle
 import requests.cookies
 import os
-from requests.packages.urllib3.util.retry import Retry
+from urllib3.util.retry import Retry
 from steampy.login import LoginExecutor
 from collections import defaultdict
 

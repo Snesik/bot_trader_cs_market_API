@@ -5,16 +5,9 @@ from datetime import datetime
 from utils import read_yaml
 
 Base = declarative_base()
-
-BD = read_yaml('config.yaml')['BD']
-engine = create_engine(
-    f"mysql+mysqlconnector://{BD['login']}:{BD['passwd']}@"
-    f"{BD['host']}/{BD['bd']}")
-
-BD_CS = read_yaml('config.yaml')['BD_CS']
-engine_cs_bd = create_engine(
-    f"mysql+mysqlconnector://{BD_CS['login']}:{BD_CS['passwd']}@"
-    f"{BD_CS['host']}/{BD_CS['bd']}")
+CONFIG = read_yaml('config.yaml')
+engine = create_engine(CONFIG['bd_cs_bot'])
+engine_cs_bd = create_engine(CONFIG['bd_full_base'])
 
 
 class Items(Base):
@@ -46,5 +39,3 @@ class Status(Base):
 
 
 Base.metadata.create_all(engine)
-
-

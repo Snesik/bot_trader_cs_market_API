@@ -8,6 +8,7 @@ from utils import time_block, read_yaml
 
 from steam.add_session import creation_session_bots
 
+
 session = Session(bind=engine)
 session_cs_bd = Session(bind=engine_cs_bd)
 trader = ApiCs()

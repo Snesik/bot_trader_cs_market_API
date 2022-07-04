@@ -26,6 +26,7 @@ class Price(Base):
     buy = Column(Float())
     sell = Column(Float())
     min_price = Column(Float())
+    counter = Column(Integer, default=0)
     item_id = Column(BigInteger(), ForeignKey('items.id'))
 
 

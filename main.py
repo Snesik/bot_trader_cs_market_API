@@ -128,7 +128,7 @@ def add_in_offerts_item(offerts, items):
 ss = trader.ping_pong()
 ddd = trader.test()
 # trader.remove_all_from_sale()
-# trader.update_inv()
+trader.update_inv()
 add_in_bd(trader.my_inventory())
 # aa = trader.my_inventory()
 # for i in aa:

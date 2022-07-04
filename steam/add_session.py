@@ -7,7 +7,6 @@ from urllib3.util.retry import Retry
 from steampy.login import LoginExecutor
 from collections import defaultdict
 
-
 bots = defaultdict(list)
 
 proxies = {'http': 'localhost:8118',
@@ -16,16 +15,17 @@ path = os.path.abspath('')
 # path = os.path.abspath('Bot/cookes/')
 session = {}
 
-
 head = {'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                       '(KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
 """Список ботов"""
 
+
 class SteamUrl:
     COMMUNITY_URL = "https://steamcommunity.com"
     STORE_URL = 'https://store.steampowered.com'
+
 
 def create_session_id_cookie(name: str, value: str) -> dict:
     return {"name": f"{name}",
@@ -87,7 +87,7 @@ def creation_session_bots(path=path):
         # session[bot].mount('https://', TimeoutHTTPAdapter(max_retries=retries))
 
         session[bot].headers.update(head)
-        #session[bot].proxies.update(proxies)
+        # session[bot].proxies.update(proxies)
         session[bot].get(SteamUrl.COMMUNITY_URL)
         session[bot].cookies.set(
             **create_session_id_cookie('steamRememberLogin', session[bot].cookies['steamRememberLogin']))
@@ -116,9 +116,8 @@ def load_cookies(session, filename, ):
     for c in cookies:
         session.cookies.set(**c)
 
-
 # if __name__ == '__main__':
 #     creation_session_bots()
-    # for i in bots:
-    #     ConfirmationExecutor('2JOCO3DHK7AkNZbLF\/ArOuvOByk=', bots[i][2], session[i]).confirm_sell_listing()
-    # ConfirmationExecutor._get_confirmation_sell_listing_id()
+# for i in bots:
+#     ConfirmationExecutor('2JOCO3DHK7AkNZbLF\/ArOuvOByk=', bots[i][2], session[i]).confirm_sell_listing()
+# ConfirmationExecutor._get_confirmation_sell_listing_id()

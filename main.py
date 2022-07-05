@@ -99,6 +99,7 @@ def chech_my_price():
                 item.avg_result = i[1]
                 item.low_avg = i[2]
                 break
+
         else:
             print('Лота нету в наших лотах ', i[0])
 

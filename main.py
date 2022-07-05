@@ -131,7 +131,7 @@ ddd = trader.test()
 # trader.remove_all_from_sale()
 trader.update_inv()
 add_in_bd(trader.my_inventory())
-# aa = trader.my_inventory()
+#aa = trader.my_inventory()
 # for i in aa:
 #     sss = trader.sell(i['id'], 10000000)
 #     print(sss)
@@ -141,17 +141,43 @@ print()
 
 # НАДО ДОБАВИТЬ ПРОВЕРКУ ЛОТОВ КОТОРЫЕ ЕСТЬ В НАЛИЧИИ НА класс и инстант из за инв. стим через запрос стима а не ксмаркета
 
-requests_session = creation_session_bots()['_kornelius_']
+#requests_session = creation_session_bots()['_kornelius_']
 items = chech_my_price()
 #
-offerts = [Offert(partner) for partner in trader.trade_request_all()['offers']]
-add_in_offerts_item(offerts, items)
+# offerts = [Offert(partner) for partner in trader.trade_request_all()['offers']]
+# add_in_offerts_item(offerts, items)
 fff = trader.search_item_by_name_5(items)
 
-ConfirmationExecutor(
-    crede['identity_secret'], crede['steam_login_sec'],
-    crede['android'], requests_session, offerts
-).send_trade_allow_request()
+# ConfirmationExecutor(
+#     crede['identity_secret'], crede['steam_login_sec'],
+#     crede['android'], requests_session, offerts
+# ).send_trade_allow_request()
+print()
+# for item in items:
+#     if item.price > item.low_avg:
+#         if item.price < item.min_price():
+
+
+
+
+
+#min_price = Avg_result - (Avg_result*TimeBlock) (плавающее значение)
+
+# Если Sell > Low_Avg True то
+#
+#         Если Sell < min_price True то                /(мы достигли minPrice)
+#
+#                 Если CB0 > 5 True то                    /(Нас давят стеком предметов)
+#
+#                          то продать Sell - 0.01, обновить дату      /(Продаём до победного (до тех пор пока Sell > Low_Avg не будет False))
+#
+#                 Если false остаёмся в стакане на 2 позиции /(Стек маленький, ждём пока он продаст вещи)
+#
+#          Если False то продать Sell - 0.01, обновить дату
+#
+#
+
+
 
 # for item in items:
 #     b.append(trader.search_item_by_name(item.name)['data'])

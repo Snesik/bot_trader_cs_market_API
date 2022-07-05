@@ -1,4 +1,4 @@
-from utils import read_yaml, bild_href
+from utils import read_yaml, bild_href, time_block
 
 
 class Inventory:
@@ -18,6 +18,12 @@ class InvItem:
         self.sell_bd = sell_bd
         self.instanse_id = instanse_id
         self.href = bild_href(name)
+        self.price = float
+        self.low_avg = float
+        self.avg_result = float
+
+    def min_price(self):
+        return self.avg_result - (self.avg_result * time_block())
 
     def __str__(self):
         return self.name

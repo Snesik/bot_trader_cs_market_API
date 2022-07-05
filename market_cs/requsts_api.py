@@ -46,7 +46,7 @@ class ApiCs:
             if value or value == 'pong':
                 pass
             else:
-                raise f'{key} нет доступа: ответ {value}'
+                raise print(f'{key} нет доступа: ответ {value}')
         return True
 
     def balance(self):
